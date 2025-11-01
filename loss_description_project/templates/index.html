@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClaimInsight - Loss Description Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Header -->
+    <header style="background-color: rgba(0, 119, 182, 0.9); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; height: 150px; position: fixed; width: 100%; top: 0; z-index: 1000;">
+        <div style="display: flex; align-items: center; gap: 25px;">
+            <div style="height: 120px; width: 120px; background-color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 24px; font-weight: bold; color: #0077B6;">CI</span>
+            </div>
+            <h1 style="margin: 0; font-size: 42px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); font-family: 'Poppins', sans-serif;">ClaimInsight</h1>
+        </div>
+        <div>
+            <button onclick="location.reload()" style="margin-right: 15px; padding: 12px 24px; background-color: white; color: #0077B6; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 16px;">Home</button>
+            <button onclick="openSidebar()" style="padding: 12px 24px; background-color: white; color: #0077B6; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 16px;">About Us</button>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <div id="sidebar" style="position: fixed; top: 0; right: -400px; width: 400px; height: 100%; background-color: #0077B6; color: white; padding: 30px; box-shadow: -2px 0 5px rgba(0,0,0,0.5); transition: right 0.3s; overflow-y: auto; z-index: 1001;">
+        <h2 style="font-size: 24px; margin-bottom: 20px;">🏠 About ClaimInsight</h2>
+        
+        <p style="margin-bottom: 20px; line-height: 1.6;">ClaimInsight is an AI-powered web application designed to automatically generate professional insurance loss descriptions from damage images.</p>
+        
+        <h3 style="font-size: 20px; margin: 20px 0;">💡 Key Features:</h3>
+        <ul style="list-style-type: none; padding-left: 0; margin-bottom: 20px; line-height: 1.6;">
+            <li style="margin-bottom: 10px;">• Upload damage images for instant analysis</li>
+            <li style="margin-bottom: 10px;">• AI-powered image recognition</li>
+            <li style="margin-bottom: 10px;">• Professional insurance descriptions</li>
+            <li style="margin-bottom: 10px;">• Download PDF reports</li>
+        </ul>
+        
+        <button onclick="closeSidebar()" style="padding: 8px 15px; background-color: white; color: #0077B6; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Close</button>
+    </div>
+
+    <!-- History Button -->
+    <div class="history-button" style="position: fixed; top: 170px; right: 20px; z-index: 999;">
+        <a href="/history" class="history-link">
+            <svg class="history-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            History
+        </a>
+    </div>
+
+    <!-- Main Content -->
+    <div style="margin-top: 170px;">
+        <!-- Background -->
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); z-index: -1; opacity: 0.9;"></div>
+
+        <div class="main-container">
+            <!-- Tagline -->
+            <h2 class="tagline">
+                "Automating Insurance Claims with AI Precision!"
+            </h2>
+
+            <div class="detection-container">
+                <h1 class="title">Loss Description Generator</h1>
+                
+                <!-- Error Alert -->
+                <div id="errorAlert" class="alert alert-error hidden">
+                    <span id="errorMessage"></span>
+                </div>
+
+                <!-- Upload Area -->
+                <div class="upload-label-container">
+                    <label for="imageUpload" class="upload-label">
+                        <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        Upload Damage Images
+                    </label>
+                </div>
+                
+                <!-- Upload Container -->
+                <div id="uploadContainer" class="upload-container" onclick="document.getElementById('imageUpload').click()">
+                    <form id="upload-file" method="post" enctype="multipart/form-data" style="display: none;">
+                        <input type="file" name="file" id="imageUpload" accept=".png, .jpg, .jpeg">
+                    </form>
+                    
+                    <!-- Preview Section -->
+                    <div id="previewContainer" class="hidden">
+                        <p><strong>Selected file:</strong> <span id="fileName"></span></p>
+                        <img id="previewImage" class="uploaded-preview-image" src="#" alt="Preview"/>
+                    </div>
+                    
+                    <!-- Default Upload Text -->
+                    <div id="uploadText">
+                        <p style="color: #0077B6; font-weight: 600;">Click to upload or drag and drop</p>
+                        <p style="color: #666; font-size: 0.875rem; margin-top: 0.5rem;">Supports JPG, PNG, JPEG (Max 16MB)</p>
+                    </div>
+                </div>
+
+                <!-- Damage Type Selection -->
+                <div class="name-input-container">
+                    <label for="damageType" class="form-label">Damage Type</label>
+                    <select id="damageType" class="patient-name-input">
+                        <option value="Hail Damage">Hail Damage</option>
+                        <option value="Flood Damage">Flood Damage</option>
+                        <option value="Fire Damage">Fire Damage</option>
+                        <option value="Collision Damage">Collision Damage</option>
+                        <option value="Vandalism">Vandalism</option>
+                        <option value="Water Damage">Water Damage</option>
+                        <option value="Storm Damage">Storm Damage</option>
+                        <option value="Theft">Theft</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <!-- Custom Damage Input -->
+                <div id="customDamageGroup" class="name-input-container hidden">
+                    <label for="customDamage" class="form-label">Specify Damage Type</label>
+                    <input type="text" id="customDamage" class="patient-name-input" placeholder="Enter specific damage type...">
+                </div>
+
+                <!-- Generate Button -->
+                <div class="button-container">
+                    <button onclick="initializeUploadContainer()" class="action-button reupload-button">
+                        <svg class="button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        Re-upload
+                    </button>
+                    <button id="generateBtn" class="action-button predict-button" disabled>
+                        <svg class="button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+                        </svg>
+                        Generate Loss Description
+                    </button>
+                </div>
+
+                <!-- RESULTS SECTION - SHOWS IMMEDIATELY AFTER GENERATION -->
+                <div id="resultsSection" class="hidden" style="margin-top: 2rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.9); border-radius: 0.5rem; border: 2px solid #48CAE4;">
+                    <h2 style="color: #0077B6; margin-bottom: 1rem; text-align: center;">📋 Damage Assessment Results</h2>
+                    
+                    <!-- Damage Type -->
+                    <div class="name-input-container">
+                        <label class="form-label" style="color: #0077B6; font-weight: bold;">Damage Type</label>
+                        <div class="result-box">
+                            <p id="damageTypeDisplay" class="result-text" style="font-weight: bold; color: #0077B6;"></p>
+                        </div>
+                    </div>
+
+                    <!-- Image Analysis -->
+                    <div class="name-input-container">
+                        <label class="form-label" style="color: #0077B6; font-weight: bold;">🖼️ AI Image Analysis</label>
+                        <div class="result-box">
+                            <p id="imageCaption" class="result-text"></p>
+                        </div>
+                    </div>
+
+                    <!-- Loss Description -->
+                    <div class="name-input-container">
+                        <label class="form-label" style="color: #0077B6; font-weight: bold;">📄 Professional Loss Description</label>
+                        <div class="result-box">
+                            <p id="lossDescription" class="result-text" style="white-space: pre-wrap; line-height: 1.6;"></p>
+                        </div>
+                    </div>
+
+                    <!-- Download Buttons -->
+                    <div class="button-container" style="margin-top: 1.5rem;">
+                        <button id="downloadPdfBtn" class="action-button" style="background-color: #4CAF50;">
+                            <svg class="button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Download PDF
+                        </button>
+                        <button id="downloadTextBtn" class="action-button">
+                            <svg class="button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Download Text
+                        </button>
+                        <button onclick="location.reload()" class="action-button" style="background-color: #666;">
+                            <svg class="button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            New Assessment
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Section -->
+            <div id="loadingSection" class="hidden">
+                <div class="loader"></div>
+                <p style="text-align: center; color: #0077B6; margin-top: 1rem; font-weight: bold;">AI is analyzing the image and generating professional description...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    
+    <script>
+        // Store current image data for PDF generation
+        let currentImageData = '';
+
+        // Initialize file upload
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
+            handleFileSelect(e);
+        });
+
+        // Damage type change handler
+        document.getElementById('damageType').addEventListener('change', function() {
+            const customDamageGroup = document.getElementById('customDamageGroup');
+            if (this.value === 'Other') {
+                customDamageGroup.classList.remove('hidden');
+            } else {
+                customDamageGroup.classList.add('hidden');
+            }
+        });
+
+        // Generate button handler
+        document.getElementById('generateBtn').addEventListener('click', processImage);
+
+        // PDF Download button handler
+        document.getElementById('downloadPdfBtn').addEventListener('click', downloadPDF);
+
+        // Text Download button handler
+        document.getElementById('downloadTextBtn').addEventListener('click', downloadText);
+
+        // Sidebar functions
+        function openSidebar() {
+            document.getElementById('sidebar').style.right = '0';
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').style.right = '-400px';
+        }
+
+        // Initialize upload container
+        function initializeUploadContainer() {
+            const uploadContainer = document.getElementById('uploadContainer');
+            const previewContainer = document.getElementById('previewContainer');
+            const uploadText = document.getElementById('uploadText');
+            const fileInput = document.getElementById('imageUpload');
+            
+            // Reset file input
+            fileInput.value = '';
+            
+            // Hide preview and show upload text
+            previewContainer.classList.add('hidden');
+            uploadText.classList.remove('hidden');
+            
+            // Reset generate button
+            document.getElementById('generateBtn').disabled = true;
+            
+            // Clear any existing results
+            document.getElementById('resultsSection').classList.add('hidden');
+            
+            // Clear stored image data
+            currentImageData = '';
+        }
+
+        // File handling functions
+        function handleFiles(file) {
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+            if (!validTypes.includes(file.type)) {
+                showError('Please select a valid image file (JPEG, PNG, or GIF)');
+                return;
+            }
+            
+            if (file.size > 16 * 1024 * 1024) {
+                showError('File size too large. Please select an image smaller than 16MB.');
+                return;
+            }
+            
+            document.getElementById('fileName').textContent = file.name;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewImage').src = e.target.result;
+                document.getElementById('previewContainer').classList.remove('hidden');
+                document.getElementById('uploadText').classList.add('hidden');
+                document.getElementById('generateBtn').disabled = false;
+                
+                // Store image data for PDF
+                currentImageData = e.target.result.split(',')[1]; // Remove data:image/jpeg;base64, prefix
+            };
+            reader.readAsDataURL(file);
+            
+            hideError();
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFiles(file);
+            }
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            document.getElementById('uploadContainer').classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            document.getElementById('uploadContainer').classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            document.getElementById('uploadContainer').classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFiles(files[0]);
+            }
+        }
+
+        // Process image function
+        async function processImage() {
+            const file = document.getElementById('imageUpload').files[0];
+            const damageType = document.getElementById('damageType').value;
+            const customDamage = document.getElementById('customDamage').value;
+            
+            if (!file) {
+                showError('Please select an image file first.');
+                return;
+            }
+            
+            showLoading();
+            document.getElementById('generateBtn').disabled = true;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('damage_type', damageType);
+            if (customDamage) {
+                formData.append('custom_damage', customDamage);
+            }
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    showError(data.error || 'An error occurred while processing the image.');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            } finally {
+                hideLoading();
+                document.getElementById('generateBtn').disabled = false;
+            }
+        }
+
+        function displayResults(data) {
+            document.getElementById('damageTypeDisplay').textContent = data.damage_type;
+            document.getElementById('imageCaption').textContent = data.image_caption;
+            document.getElementById('lossDescription').textContent = data.loss_description;
+            
+            // Store data for downloads
+            document.getElementById('downloadPdfBtn').setAttribute('data-description', data.loss_description);
+            document.getElementById('downloadPdfBtn').setAttribute('data-damage-type', data.damage_type);
+            document.getElementById('downloadTextBtn').setAttribute('data-description', data.loss_description);
+            document.getElementById('downloadTextBtn').setAttribute('data-damage-type', data.damage_type);
+            
+            document.getElementById('resultsSection').classList.remove('hidden');
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function downloadPDF() {
+            const description = document.getElementById('downloadPdfBtn').getAttribute('data-description');
+            const damageType = document.getElementById('downloadPdfBtn').getAttribute('data-damage-type');
+            
+            try {
+                const response = await fetch('/download-pdf', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        description: description,
+                        damage_type: damageType,
+                        image_data: currentImageData
+                    })
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `loss_description_${damageType.replace(' ', '_')}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    showError('Failed to generate PDF.');
+                }
+            } catch (error) {
+                showError('PDF download error: ' + error.message);
+            }
+        }
+
+        async function downloadText() {
+            const description = document.getElementById('downloadTextBtn').getAttribute('data-description');
+            const damageType = document.getElementById('downloadTextBtn').getAttribute('data-damage-type');
+            
+            try {
+                const response = await fetch('/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        description: description,
+                        damage_type: damageType
+                    })
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `loss_description_${damageType.replace(' ', '_')}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    showError('Failed to download text file.');
+                }
+            } catch (error) {
+                showError('Download error: ' + error.message);
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loadingSection').classList.remove('hidden');
+            document.getElementById('resultsSection').classList.add('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingSection').classList.add('hidden');
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorAlert').classList.remove('hidden');
+            document.getElementById('errorAlert').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hideError() {
+            document.getElementById('errorAlert').classList.add('hidden');
+        }
+
+        // Initialize drag and drop
+        document.getElementById('uploadContainer').addEventListener('dragover', handleDragOver);
+        document.getElementById('uploadContainer').addEventListener('dragleave', handleDragLeave);
+        document.getElementById('uploadContainer').addEventListener('drop', handleDrop);
+    </script>
+</body>
+</html>
