@@ -1,5 +1,3 @@
-# Loss_Description_Project
-
 loss_description_project/
 │
 ├── app.py                          # Main Flask application
