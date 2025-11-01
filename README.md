@@ -2,18 +2,18 @@
 
 loss_description_project/
 │
-├── app.py
-├── image_captioner.py
-├── description_generator.py
-├── pdf_generator.py         
-├── requirements.txt
+├── app.py                          # Main Flask application
+├── image_captioner.py              # AI-powered image analysis module
+├── description_generator.py        # Professional description generator
+├── pdf_generator.py                # Professional PDF report generator
+├── requirements.txt                # Python dependencies
 │
 ├── static/
 │   ├── css/
-│   │   └── style.css
+│   │   └── style.css              # Application styling
 │   └── js/
-│       └── script.js
+│       └── script.js              # Frontend JavaScript functionality
 │
 └── templates/
-    ├── index.html
-    └── history.html
+    ├── index.html                  # Main application interface
+    └── history.html               # Claim history page
